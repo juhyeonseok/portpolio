@@ -1,0 +1,164 @@
+<form id="profile-form" 
+      hx-post="{% url 'accounts:profile' %}" 
+      hx-encoding="multipart/form-data"
+      hx-target="#profile-form-container" 
+      hx-swap="outerHTML"
+      class="auth-form {% if form.errors %}shake-form{% endif %}"
+      style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%;">
+    
+    {% csrf_token %}
+
+    <!-- 프로필 이미지 업로드 영역 -->
+    <div class="profile-avatar-section" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 1rem;" x-data="{ imgPreview: '{% if request.user.profile_image %}{{ request.user.profile_image.url }}{% else %}https://api.dicebear.com/7.x/bottts/svg?seed={{ request.user.nickname }}{% endif %}' }">
+        <div class="avatar-preview-wrapper" style="position: relative; width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--color-primary); overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); background-color: var(--color-card-bg); transition: all 0.3s ease;">
+            <img :src="imgPreview" id="avatar-preview-img" alt="Avatar Preview" style="width: 100%; height: 100%; object-fit: cover;">
+            
+            <!-- 호버 오버레이 -->
+            <label for="avatar-file-input" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; cursor: pointer; transition: opacity 0.3s ease; color: #fff; font-size: 0.85rem; font-weight: 600;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                변경하기
+            </label>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <label for="avatar-file-input" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); cursor: pointer; transition: all 0.2s ease;">
+                이미지 업로드
+            </label>
+            <input type="file" id="avatar-file-input" name="profile_image" accept="image/*" style="display: none;" @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { imgPreview = e.target.result; }; reader.readAsDataURL(file); }">
+            
+            {% if request.user.profile_image %}
+                <!-- 이미지 삭제 (디폴트로 리셋) 기능 제공 -->
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                    <input type="checkbox" name="profile_image-clear" id="profile_image-clear_id" style="cursor: pointer;">
+                    <label for="profile_image-clear_id" style="font-size: 0.8rem; color: var(--color-text-muted); cursor: pointer;">현재 사진 삭제 (기본 아바타로 변경)</label>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if form.profile_image.errors %}
+            <div class="field-error-container">
+                {% for error in form.profile_image.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if success_message %}
+        <div class="form-global-success animate-fade-in-up" 
+             style="background-color: rgba(46, 213, 115, 0.08); border: 1px solid rgba(46, 213, 115, 0.2); padding: 0.8rem 1.2rem; border-radius: 12px; margin-bottom: 0.5rem;">
+            <span class="form-success-msg">✅ {{ success_message }}</span>
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="form-global-error animate-fade-in-up">
+            {% for error in form.non_field_errors %}
+                <span class="form-error-msg">⚠️ {{ error }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="form-field-group">
+        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+        <div class="input-wrapper">
+            {{ form.email }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.email.errors %}
+            <div class="field-error-container">
+                {% for error in form.email.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-field-group">
+        <label for="{{ form.nickname.id_for_label }}" class="form-label">{{ form.nickname.label }}</label>
+        <div class="input-wrapper">
+            {{ form.nickname }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.nickname.errors %}
+            <div class="field-error-container">
+                {% for error in form.nickname.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-field-group">
+        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+        <div class="input-wrapper">
+            {{ form.name }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.name.errors %}
+            <div class="field-error-container">
+                {% for error in form.name.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <hr style="border: 0; height: 1px; background-color: var(--color-border); margin: 1rem 0;">
+
+    <div class="form-field-group">
+        <label for="{{ form.new_password.id_for_label }}" class="form-label">{{ form.new_password.label }}</label>
+        <div class="input-wrapper">
+            {{ form.new_password }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.new_password.errors %}
+            <div class="field-error-container">
+                {% for error in form.new_password.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-field-group">
+        <label for="{{ form.new_password_confirm.id_for_label }}" class="form-label">{{ form.new_password_confirm.label }}</label>
+        <div class="input-wrapper">
+            {{ form.new_password_confirm }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.new_password_confirm.errors %}
+            <div class="field-error-container">
+                {% for error in form.new_password_confirm.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <hr style="border: 0; height: 1px; background-color: var(--color-border); margin: 1rem 0;">
+
+    <div class="form-field-group">
+        <label for="{{ form.current_password.id_for_label }}" class="form-label" style="color: var(--color-primary);">{{ form.current_password.label }} (필수)</label>
+        <div class="input-wrapper">
+            {{ form.current_password }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.current_password.errors %}
+            <div class="field-error-container">
+                {% for error in form.current_password.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn-auth-submit" style="margin-top: 1rem;">
+        내 정보 수정
+        <!-- Save/Edit Icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+    </button>
+</form>

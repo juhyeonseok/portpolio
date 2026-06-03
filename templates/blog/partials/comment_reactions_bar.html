@@ -1,0 +1,37 @@
+<div id="comment-reactions-{{ comment.id }}" 
+     class="reactions-bar-container animate-scale-in" 
+     style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.6rem;">
+    
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+        {% for key, emoji_label in emoji_choices %}
+            <button hx-post="{% url 'blog:comment_react' comment.id key %}"
+                    hx-target="#comment-reactions-{{ comment.id }}"
+                    hx-swap="outerHTML"
+                    class="emoji-btn {% if key in user_reactions %}active{% endif %}"
+                    style="cursor: pointer; font-size: 0.85rem; padding: 0.25rem 0.55rem; border-radius: 20px; border: 1.5px solid {% if key in user_reactions %}var(--color-primary){% else %}var(--color-border){% endif %}; background-color: {% if key in user_reactions %}var(--color-primary-glow){% else %}var(--color-surface){% endif %}; color: var(--color-text); font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; transition: var(--transition-bounce);"
+                    onmouseover="this.style.transform='scale(1.15)'"
+                    onmouseout="this.style.transform='scale(1)'">
+                <span>
+                    {% if key == 'like' %}👍
+                    {% elif key == 'love' %}❤️
+                    {% elif key == 'haha' %}😂
+                    {% elif key == 'wow' %}😮
+                    {% elif key == 'sad' %}😥
+                    {% elif key == 'angry' %}😡
+                    {% endif %}
+                </span>
+                
+                <span style="font-size: 0.75rem; color: var(--color-text-muted);">
+                    {% if key == 'like' %}{{ comment.like_count }}
+                    {% elif key == 'love' %}{{ comment.love_count }}
+                    {% elif key == 'haha' %}{{ comment.haha_count }}
+                    {% elif key == 'wow' %}{{ comment.wow_count }}
+                    {% elif key == 'sad' %}{{ comment.sad_count }}
+                    {% elif key == 'angry' %}{{ comment.angry_count }}
+                    {% endif %}
+                </span>
+            </button>
+        {% endfor %}
+    </div>
+
+</div>

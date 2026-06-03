@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}로그인 - HYEONSEOK's BLOG{% endblock %}
+
+{% block content %}
+<style>
+    .auth-page-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 12rem);
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .auth-card {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        padding: 3.5rem 3rem;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 20px 40px var(--color-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-header {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .auth-title {
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .auth-subtitle {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+    }
+
+    /* Interactive Inputs Styling mapped from global index.css */
+    .btn-auth-submit svg {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-auth-submit:hover svg {
+        transform: translateX(4px);
+    }
+
+    .auth-footer {
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        border-top: 1px solid var(--color-border);
+        padding-top: 1.5rem;
+    }
+
+    .auth-footer-link {
+        color: var(--color-primary);
+        font-weight: 700;
+        transition: var(--transition-smooth);
+        margin-left: 0.3rem;
+    }
+
+    .auth-footer-link:hover {
+        text-decoration: underline;
+        color: var(--color-primary-hover);
+    }
+
+    /* Error Message styles */
+    .form-global-error {
+        background-color: rgba(255, 71, 87, 0.08);
+        border: 1px solid rgba(255, 71, 87, 0.2);
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .field-error-container {
+        margin-top: 0.2rem;
+    }
+
+    .form-error-msg {
+        font-size: 0.85rem;
+        color: #ff4757;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .form-success-msg {
+        font-size: 0.85rem;
+        color: #2ed573;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Shake Animation for failed forms */
+    .shake-form {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        transform: translate3d(0, 0, 0);
+        backface-visibility: hidden;
+        perspective: 1000px;
+    }
+</style>
+
+<div class="auth-page-container">
+    <div class="auth-card animate-scale-in">
+        <div class="auth-header">
+            <h2 class="auth-title">로그인</h2>
+            <p class="auth-subtitle">안전하고 창의적인 공간으로의 복귀</p>
+        </div>
+
+        <div id="login-form-container">
+            {% include 'accounts/partials/login_form.html' %}
+        </div>
+
+        <div class="auth-footer">
+            <span>아직 계정이 없으신가요?</span>
+            <a href="{% url 'accounts:register' %}" class="auth-footer-link">회원가입</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

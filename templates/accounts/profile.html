@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}내 정보 수정 - HYEONSEOK's BLOG{% endblock %}
+
+{% block content %}
+<style>
+    .profile-page-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 12rem);
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .profile-card {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        padding: 3.5rem 3rem;
+        width: 100%;
+        max-width: 550px;
+        box-shadow: 0 20px 40px var(--color-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .profile-title {
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .profile-subtitle {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+    }
+
+    /* Input & Interactive Styles mapped from global index.css */
+    .btn-auth-submit svg {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-auth-submit:hover svg {
+        transform: translateX(4px);
+    }
+
+    .form-error-msg {
+        font-size: 0.85rem;
+        color: #ff4757;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .form-success-msg {
+        font-size: 0.85rem;
+        color: #2ed573;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .shake-form {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        transform: translate3d(0, 0, 0);
+        backface-visibility: hidden;
+        perspective: 1000px;
+    }
+
+    /* Premium Success Toast Styling */
+    .toast-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .toast-card {
+        background-color: var(--color-surface);
+        border-left: 5px solid #2ed573;
+        border-top: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        min-width: 300px;
+        color: var(--color-text);
+        animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideInUp {
+        0% {
+            transform: translateY(100px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="profile-page-container" 
+     x-data="{ 
+        toastVisible: false,
+        toastMessage: '',
+        showToast(msg) {
+            this.toastMessage = msg;
+            this.toastVisible = true;
+            setTimeout(() => {
+                this.toastVisible = false;
+            }, 3000);
+        }
+     }"
+     x-on:profile-updated.window="showToast('개인정보가 안전하게 변경되었습니다!')"
+     @profileupdated.window="showToast('개인정보가 안전하게 변경되었습니다!')">
+     
+    <!-- Toast Notification Popup -->
+    <div class="toast-container" x-show="toastVisible" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-8" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform translate-y-8" style="display: none;">
+        <div class="toast-card">
+            <!-- Success Check Circle SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ed573" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <div>
+                <strong style="display: block; font-size: 0.95rem;">성공!</strong>
+                <span x-text="toastMessage" style="font-size: 0.85rem; color: var(--color-text-muted);"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-card animate-scale-in">
+        <div class="profile-header">
+            <h2 class="profile-title">내 정보 관리</h2>
+            <p class="profile-subtitle">닉네임, 이름 및 패스워드를 언제든지 안전하게 변경하세요</p>
+        </div>
+
+        <div id="profile-form-container">
+            {% include 'accounts/partials/profile_form.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+<div id="comment-row-{{ reply.id }}" 
+     class="comment-reply-card animate-fade-in-up" 
+     style="display: flex; gap: 1rem; padding: 1.2rem; background-color: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 16px; margin-left: 2.5rem; margin-top: 0.6rem; position: relative;">
+    
+    <!-- Indentation indicator bar -->
+    <div style="position: absolute; left: -1.2rem; top: 0; bottom: 0; width: 2px; background-color: var(--color-border);"></div>
+
+    <!-- User Avatar -->
+    <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1.5px solid var(--color-primary);">
+        {% if reply.author.profile_image %}
+            <img src="{{ reply.author.profile_image.url }}" style="width: 100%; height: 100%; object-fit: cover;" alt="아바타">
+        {% else %}
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed={{ reply.author.nickname }}" style="width: 100%; height: 100%; object-fit: cover;" alt="아바타">
+        {% endif %}
+    </div>
+
+    <!-- Body Column -->
+    <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+                <strong style="font-size: 0.92rem; color: var(--color-text);">{{ reply.author.nickname }}</strong>
+                <span style="font-size: 0.78rem; color: var(--color-text-muted);">{{ reply.created_at|date:"Y.m.d H:i" }}</span>
+            </div>
+
+            <!-- Soft Delete Button (Only for owner or Superuser) -->
+            {% if user.is_authenticated and user.pk == reply.author.pk or user.is_superuser %}
+                {% if not reply.is_deleted %}
+                    <button hx-post="{% url 'blog:delete_comment' reply.id %}"
+                            hx-target="#comment-body-{{ reply.id }}"
+                            hx-swap="outerHTML"
+                            hx-confirm="이 답글을 삭제하시겠습니까?"
+                            style="cursor: pointer; font-size: 0.8rem; color: #ff4757; font-weight: 700; background: none; border: none; padding: 0.2rem 0.5rem; border-radius: 6px; transition: var(--transition-smooth);"
+                            onmouseover="this.style.backgroundColor='rgba(255, 71, 87, 0.08)'"
+                            onmouseout="this.style.backgroundColor='transparent'">
+                        삭제
+                    </button>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Comment content -->
+        <div id="comment-body-{{ reply.id }}" style="margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.6; color: var(--color-text);">
+            {% if reply.is_deleted %}
+                <span style="color: var(--color-text-muted); font-style: italic;">🚫 삭제된 답글입니다.</span>
+            {% else %}
+                {{ reply.content }}
+            {% endif %}
+        </div>
+
+        <!-- Emoji reactions bar if not deleted -->
+        {% if not reply.is_deleted %}
+            {% include 'blog/partials/comment_reactions_bar.html' with comment=reply %}
+        {% endif %}
+    </div>
+
+</div>

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# Django Settings / Local Dev Files
+.env
+db.sqlite3
+staticfiles/
+media/
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Local Stack / Agentic files (보안 및 개발 내부 문서 격리)
+.mystack/
+.gemini/
+antigravity-ide/
+brain/

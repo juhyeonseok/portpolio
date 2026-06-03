@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile.name }} - Portfolio{% endblock %}
+
+{% block content %}
+<style>
+    /* Premium Resume Styling */
+    .portfolio-container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 3.5rem;
+        width: 100%;
+    }
+
+    /* Print utility header */
+    .portfolio-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--color-border);
+        padding-bottom: 1.5rem;
+    }
+
+    .btn-pdf {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--color-surface);
+        border: 1.5px solid var(--color-border);
+        color: var(--color-text);
+        font-weight: 700;
+        padding: 0.7rem 1.4rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px var(--color-shadow);
+        cursor: pointer;
+        transition: var(--transition-bounce);
+    }
+
+    .btn-pdf:hover {
+        transform: translateY(-2px);
+        background-color: var(--color-surface-hover);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+
+    /* Overview Section (Hero Resume) */
+    .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        padding: 2rem 0;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid var(--color-primary);
+        box-shadow: 0 8px 24px var(--color-primary-glow);
+        flex-shrink: 0;
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition-smooth);
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.06);
+    }
+
+    .profile-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .profile-name {
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .profile-tagline {
+        font-size: 1.2rem;
+        color: var(--color-text-muted);
+        font-weight: 500;
+    }
+
+    .skills-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 0.5rem;
+    }
+
+    .skill-badge {
+        font-size: 0.85rem;
+        font-weight: 700;
+        background-color: var(--color-surface);
+        border: 1.5px solid var(--color-border);
+        color: var(--color-text-muted);
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        transition: var(--transition-bounce);
+    }
+
+    .skill-badge:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        transform: translateY(-2px) scale(1.05);
+    }
+
+    /* Resume Section Structures */
+    .resume-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Triggered state by IntersectionObserver */
+    .resume-section.section-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .resume-section-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        border-bottom: 2px solid var(--color-primary);
+        padding-bottom: 0.5rem;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .resume-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .resume-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding-left: 1rem;
+        border-left: 2px solid var(--color-border);
+        transition: border-color 0.3s ease;
+    }
+
+    .resume-item:hover {
+        border-left-color: var(--color-primary);
+    }
+
+    .resume-item-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .resume-item-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--color-text);
+    }
+
+    .resume-item-date {
+        font-size: 0.9rem;
+        color: var(--color-primary);
+        font-weight: 700;
+    }
+
+    .resume-item-desc {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        white-space: pre-line;
+    }
+
+    /* Floating Admin Edit Button */
+    .floating-edit-btn {
+        position: fixed;
+        bottom: 2.5rem;
+        right: 2.5rem;
+        background: linear-gradient(135deg, #FF9A3C 0%, #E07D20 100%);
+        color: white;
+        font-weight: 800;
+        padding: 1rem 1.8rem;
+        border-radius: 50px;
+        box-shadow: 0 10px 25px rgba(224, 125, 32, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        z-index: 999;
+        transition: var(--transition-bounce);
+        cursor: pointer;
+    }
+
+    .floating-edit-btn:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 15px 35px rgba(224, 125, 32, 0.6);
+    }
+
+    /* 🖨️ PDF Printing media styles */
+    @media print {
+        body {
+            background-color: white !important;
+            color: black !important;
+            font-size: 11pt;
+        }
+
+        .sidebar, 
+        .top-bar, 
+        .mobile-header,
+        .mobile-sidebar-drawer,
+        .floating-edit-btn,
+        .portfolio-header-bar,
+        #htmx-progress {
+            display: none !important;
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        .portfolio-container {
+            max-width: 100% !important;
+            gap: 2.5rem !important;
+        }
+
+        .resume-section {
+            opacity: 1 !important;
+            transform: none !important;
+            page-break-inside: avoid;
+        }
+
+        .avatar-wrapper {
+            width: 120px !important;
+            height: 120px !important;
+            border-color: #FF9A3C !important;
+            box-shadow: none !important;
+        }
+
+        .skill-badge {
+            border-color: #ccc !important;
+            color: #333 !important;
+        }
+
+        .resume-section-title {
+            border-bottom-color: #FF9A3C !important;
+        }
+    }
+
+    /* Small screen adaptations */
+    @media (max-width: 768px) {
+        .profile-hero {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+        .resume-item-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.2rem;
+        }
+    }
+</style>
+
+<div class="portfolio-container">
+    
+    <!-- Title and PDF Print bar -->
+    <div class="portfolio-header-bar">
+        <h2 style="font-size: 1.8rem; font-weight: 800;">PORTFOLIO</h2>
+        {% if user.is_authenticated and user.is_superuser %}
+            <button class="btn-pdf" onclick="window.print()">
+                <!-- Download Icon -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                PDF 다운로드
+            </button>
+        {% endif %}
+    </div>
+
+    <!-- Overview Section (Hero) -->
+    <section class="profile-hero animate-scale-in">
+        <div class="avatar-wrapper">
+            {% if profile.profile_image %}
+                <img src="{{ profile.profile_image.url }}" class="profile-avatar" alt="프로필 사진">
+            {% else %}
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Hyeonseok" class="profile-avatar" alt="기본 아바타">
+            {% endif %}
+        </div>
+        <div class="profile-meta">
+            <h1 class="profile-name">{{ profile.name }}</h1>
+            <p class="profile-tagline">{{ profile.title }}</p>
+            <div class="skills-badges">
+                {% for skill in profile.skill_list %}
+                    <span class="skill-badge">{{ skill }}</span>
+                {% empty %}
+                    <span class="skill-badge" style="border-style: dashed;">등록된 기술 스택이 없습니다.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- 1. 교육수료 / 학력 -->
+    <section class="resume-section" id="sec-education">
+        <h2 class="resume-section-title">
+            📚 교육 수료 & 학력
+        </h2>
+        <div class="resume-list">
+            {% for item in education_items %}
+                <div class="resume-item">
+                    <div class="resume-item-header">
+                        <h3 class="resume-item-title">{{ item.title }}</h3>
+                        <span class="resume-item-date">{{ item.sub_title }}</span>
+                    </div>
+                    {% if item.description %}
+                        <p class="resume-item-desc">{{ item.description }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="color: var(--color-text-muted); font-style: italic;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 2. 경력 / 프로젝트 -->
+    <section class="resume-section" id="sec-experience">
+        <h2 class="resume-section-title">
+            💼 직장 경력 & 프로젝트
+        </h2>
+        <div class="resume-list">
+            {% for item in experience_items %}
+                <div class="resume-item">
+                    <div class="resume-item-header">
+                        <h3 class="resume-item-title">{{ item.title }}</h3>
+                        <span class="resume-item-date">{{ item.sub_title }}</span>
+                    </div>
+                    {% if item.description %}
+                        <p class="resume-item-desc">{{ item.description }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="color: var(--color-text-muted); font-style: italic;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 3. 대회 / 수상 -->
+    <section class="resume-section" id="sec-award">
+        <h2 class="resume-section-title">
+            🏆 수상 경력 & 대회 참가
+        </h2>
+        <div class="resume-list">
+            {% for item in award_items %}
+                <div class="resume-item">
+                    <div class="resume-item-header">
+                        <h3 class="resume-item-title">{{ item.title }}</h3>
+                        <span class="resume-item-date">{{ item.sub_title }}</span>
+                    </div>
+                    {% if item.description %}
+                        <p class="resume-item-desc">{{ item.description }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="color: var(--color-text-muted); font-style: italic;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 4. 자격증 -->
+    <section class="resume-section" id="sec-certificate">
+        <h2 class="resume-section-title">
+            🎖️ 보유 자격증 목록
+        </h2>
+        <div class="resume-list">
+            {% for item in certificate_items %}
+                <div class="resume-item">
+                    <div class="resume-item-header">
+                        <h3 class="resume-item-title">{{ item.title }}</h3>
+                        <span class="resume-item-date">{{ item.sub_title }}</span>
+                    </div>
+                    {% if item.description %}
+                        <p class="resume-item-desc">{{ item.description }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="color: var(--color-text-muted); font-style: italic;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 5. 논문 / 연구 -->
+    <section class="resume-section" id="sec-thesis">
+        <h2 class="resume-section-title">
+            📄 논문 발표 & 학술 연구
+        </h2>
+        <div class="resume-list">
+            {% for item in thesis_items %}
+                <div class="resume-item">
+                    <div class="resume-item-header">
+                        <h3 class="resume-item-title">{{ item.title }}</h3>
+                        <span class="resume-item-date">{{ item.sub_title }}</span>
+                    </div>
+                    {% if item.description %}
+                        <p class="resume-item-desc">{{ item.description }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="color: var(--color-text-muted); font-style: italic;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+
+<!-- Floating Admin Control Panel Trigger (Absolutely hidden for general users) -->
+{% if user.is_authenticated and user.is_superuser %}
+    <a href="{% url 'portfolio:edit' %}" class="floating-edit-btn animate-scale-in" title="포트폴리오 정보 편집">
+        <!-- Settings/Gear SVG -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        포트폴리오 편집
+    </a>
+{% endif %}
+
+<!-- IntersectionObserver scroll trigger animation script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const sections = document.querySelectorAll(".resume-section");
+        
+        const observerOptions = {
+            root: null,
+            threshold: 0.15,
+            rootMargin: "0px"
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("section-visible");
+                    observer.unobserve(entry.target); // Trigger once
+                }
+            });
+        }, observerOptions);
+        
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    });
+</script>
+{% endblock %}

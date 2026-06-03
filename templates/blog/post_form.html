@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}포스트 수정{% else %}새 포스트 작성{% endif %}{% endblock %}
+
+{% block extra_head %}
+<!-- Markdown-it and Highlight.js for Real-time Editor Preview -->
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .editor-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        height: calc(100vh - 8rem);
+    }
+
+    .editor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    /* Split-screen panels */
+    .editor-panels {
+        display: flex;
+        gap: 1.5rem;
+        flex-grow: 1;
+        height: 60%;
+        min-height: 450px;
+    }
+
+    .panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px var(--color-shadow);
+    }
+
+    .panel-header {
+        background-color: var(--color-bg);
+        padding: 0.8rem 1.2rem;
+        border-bottom: 1px solid var(--color-border);
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--color-text-muted);
+    }
+
+    .editor-textarea {
+        width: 100%;
+        height: 100%;
+        padding: 1.5rem;
+        font-family: 'Consolas', 'Fira Code', monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        background-color: var(--color-card-bg);
+        color: var(--color-text);
+        border: none;
+        outline: none;
+        resize: none;
+    }
+
+    .preview-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        height: 100%;
+        color: var(--color-text);
+    }
+
+    /* Markdown preview basic styling inside editor */
+    .preview-body h1, .preview-body h2, .preview-body h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.8rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 0.3rem;
+    }
+    .preview-body p { margin-bottom: 1rem; }
+    .preview-body pre {
+        background-color: #282c34;
+        padding: 1rem;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 1.2rem 0;
+    }
+    .preview-body code {
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    .preview-body img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    .preview-body blockquote {
+        border-left: 4px solid var(--color-primary);
+        padding-left: 1rem;
+        color: var(--color-text-muted);
+        margin: 1rem 0;
+    }
+
+    /* Form Fields Alignment */
+    .editor-meta-fields {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px var(--color-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1.2rem;
+        align-items: end;
+    }
+
+    @media (max-width: 900px) {
+        .editor-panels {
+            flex-direction: column;
+        }
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="editor-container animate-fade-in-up">
+
+    <div class="editor-header">
+        <h2 style="font-size: 1.6rem; font-weight: 800;">
+            {% if object %}📝 포스트 수정하기{% else %}✍️ 새 포스트 작성하기{% endif %}
+        </h2>
+        <a href="{% url 'blog:index' %}" class="btn-pdf" style="font-size: 0.9rem;">
+            목록으로
+        </a>
+    </div>
+
+    <!-- Main Write Form -->
+    <form method="post" id="post-write-form" style="display: flex; flex-direction: column; gap: 1.5rem; flex-grow: 1;">
+        {% csrf_token %}
+
+        <!-- Meta specs Form Card -->
+        <div class="editor-meta-fields">
+            <div class="form-field-group">
+                <label class="form-label">{{ form.title.label }}</label>
+                <div class="input-wrapper">
+                    {{ form.title }}
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <div class="form-grid-3">
+                <div class="form-field-group">
+                    <label class="form-label">{{ form.series.label }}</label>
+                    <div class="input-wrapper">
+                        {{ form.series }}
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label class="form-label">{{ form.new_series_name.label }}</label>
+                    <div class="input-wrapper">
+                        {{ form.new_series_name }}
+                        <span class="focus-border"></span>
+                    </div>
+                </div>
+
+                <div class="form-field-group" style="flex-direction: row; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; justify-content: flex-end;">
+                    <label class="form-label" style="cursor: pointer; margin-bottom: 0;">{{ form.is_published.label }}</label>
+                    {{ form.is_published }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Split-screen Workspaces -->
+        <div class="editor-panels">
+            <!-- Left Side: Markdown Editor -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Markdown Editor</span>
+                    <!-- Image Selection Trigger Toolbar -->
+                    <button type="button" id="toolbar-upload-btn" style="cursor: pointer; font-size: 0.85rem; background-color: rgba(255, 154, 60, 0.1); color: var(--color-primary); padding: 0.3rem 0.7rem; border-radius: 6px; font-weight:700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <!-- Clip/Paperclip Icon -->
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                        이미지 첨부
+                    </button>
+                    <input type="file" id="toolbar-file-input" style="display: none;" accept="image/*">
+                </div>
+                {{ form.content }}
+            </div>
+
+            <!-- Right Side: HTML Live Preview -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Live Preview</span>
+                </div>
+                <div id="live-preview-box" class="preview-body"></div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" style="align-self: flex-end; padding: 1rem 2.2rem; margin-bottom: 2rem;">
+            {% if object %}게시글 변경 저장{% else %}작성 완료 및 발행{% endif %}
+        </button>
+    </form>
+
+</div>
+
+<!-- Editor Interactive Javascript Engine -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const textarea = document.querySelector(".editor-textarea");
+        const previewBox = document.getElementById("live-preview-box");
+        const toolbarBtn = document.getElementById("toolbar-upload-btn");
+        const toolbarInput = document.getElementById("toolbar-file-input");
+
+        // 1. Markdown-it initialization with code highlight config
+        const md = window.markdownit({
+            html: true,
+            linkify: true,
+            typographer: true,
+            highlight: function (str, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return '<pre class="hljs"><code>' +
+                               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                               '</code></pre>';
+                    } catch (__) {}
+                }
+                return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+            }
+        });
+
+        // Live Render Function
+        function renderLivePreview() {
+            const rawText = textarea.value;
+            previewBox.innerHTML = md.render(rawText);
+        }
+
+        // Trigger render on input
+        textarea.addEventListener("input", renderLivePreview);
+        
+        // Initial load rendering
+        renderLivePreview();
+
+        // 2. Ctrl + V Clipboard Image paste 비동기 업로드 연동
+        textarea.addEventListener("paste", (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") !== -1) {
+                    e.preventDefault(); // 기본 붙여넣기 차단
+                    const file = items[i].getAsFile();
+                    uploadEditorImage(file);
+                    break;
+                }
+            }
+        });
+
+        // 3. Toolbar click manual upload trigger
+        toolbarBtn.addEventListener("click", () => toolbarInput.click());
+        toolbarInput.addEventListener("change", (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                uploadEditorImage(files[0]);
+            }
+        });
+
+        // Core Image Upload and editor insertion logic
+        function uploadEditorImage(file) {
+            const formData = new FormData();
+            formData.append("image", file);
+            
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            // Temporary indicator insertion at cursor position
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            const originalText = textarea.value;
+            const loadingText = "\n![이미지 업로드 중...](loading)\n";
+            
+            textarea.value = originalText.substring(0, startPos) + loadingText + originalText.substring(endPos);
+            
+            // Adjust cursor position
+            textarea.focus();
+            textarea.selectionStart = startPos + loadingText.length;
+            textarea.selectionEnd = startPos + loadingText.length;
+            
+            // Trigger preview
+            renderLivePreview();
+
+            fetch("{% url 'blog:upload_image' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            })
+            .then(res => {
+                if (res.ok) return res.json();
+                return res.json().then(err => { throw new Error(err.error || "업로드 실패") });
+            })
+            .then(data => {
+                // Replace loading indicator with actual saved image url markdown
+                const insertedMarkdown = `\n![이미지](${data.url})\n`;
+                const newText = textarea.value.replace("![이미지 업로드 중...](loading)", insertedMarkdown);
+                textarea.value = newText;
+                
+                // Trigger preview refresh
+                renderLivePreview();
+            })
+            .catch(err => {
+                alert("이미지 업로드 오류: " + err.message);
+                // Remove loading text
+                const newText = textarea.value.replace("![이미지 업로드 중...](loading)", "");
+                textarea.value = newText;
+                renderLivePreview();
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}관리자 콘솔 - HYEONSEOK's BLOG{% endblock %}
+
+{% block content %}
+<style>
+    .admin-console-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        width: 100%;
+    }
+
+    /* Stats card board */
+    .stats-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    .stats-card {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 20px;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 8px 24px var(--color-shadow);
+        transition: var(--transition-bounce);
+    }
+
+    .stats-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--color-primary);
+    }
+
+    .stats-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-primary-glow);
+        color: var(--color-primary);
+        font-size: 1.5rem;
+    }
+
+    .stats-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .stats-number {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stats-label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Tab switcher panel */
+    .admin-tabs-bar {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--color-border);
+        padding-bottom: 0.5rem;
+    }
+
+    .admin-tab-btn {
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 0.8rem 1.6rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        color: var(--color-text-muted);
+    }
+
+    .admin-tab-btn.active {
+        background-color: var(--color-primary-glow);
+        color: var(--color-primary);
+    }
+
+    /* Table styles for items */
+    .admin-table-card {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px var(--color-shadow);
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .admin-table th, .admin-table td {
+        padding: 1.2rem;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .admin-table th {
+        font-weight: 700;
+        color: var(--color-text-muted);
+        background-color: var(--color-bg);
+        border-radius: 8px;
+    }
+
+    .admin-table tr:hover td {
+        background-color: var(--color-surface-hover);
+    }
+
+    /* Action triggers */
+    .btn-toggle-badge {
+        cursor: pointer;
+        display: inline-flex;
+        border: none;
+        background: none;
+        transition: var(--transition-bounce);
+    }
+
+    .btn-toggle-badge:hover {
+        transform: scale(1.08);
+    }
+
+    .badge-status-active {
+        background-color: rgba(46, 213, 115, 0.12);
+        color: #2ed573;
+        padding: 0.3rem 0.7rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .badge-status-inactive {
+        background-color: rgba(255, 71, 87, 0.12);
+        color: #ff4757;
+        padding: 0.3rem 0.7rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+</style>
+
+<div class="admin-console-container animate-fade-in-up" x-data="{ activeTab: 'users' }">
+    
+    <!-- Title header -->
+    <div style="border-bottom: 2px solid var(--color-border); padding-bottom: 1.5rem;">
+        <h2 style="font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem;">
+            🛡️ 종합 관리자 대시보드
+        </h2>
+    </div>
+
+    <!-- Stats Summary Board -->
+    <div class="stats-board">
+        <!-- Card 1: Users -->
+        <div class="stats-card">
+            <div class="stats-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div class="stats-meta">
+                <span class="stats-number">{{ total_users }}</span>
+                <span class="stats-label">총 가입 회원</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Posts -->
+        <div class="stats-card">
+            <div class="stats-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div class="stats-meta">
+                <span class="stats-number">{{ total_posts }}</span>
+                <span class="stats-label">전체 에세이 포스트</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Comments -->
+        <div class="stats-card">
+            <div class="stats-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div class="stats-meta">
+                <span class="stats-number">{{ total_comments }}</span>
+                <span class="stats-label">누적 소통 댓글수</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab switcher button group -->
+    <div class="admin-tabs-bar">
+        <button class="admin-tab-btn" :class="{ 'active': activeTab === 'users' }" @click="activeTab = 'users'">
+            👥 회원 관리
+        </button>
+        <button class="admin-tab-btn" :class="{ 'active': activeTab === 'posts' }" @click="activeTab = 'posts'">
+            📝 게시글 관리
+        </button>
+        <button class="admin-tab-btn" :class="{ 'active': activeTab === 'series' }" @click="activeTab = 'series'">
+            📦 시리즈 관리
+        </button>
+    </div>
+
+    <!-- Tab Content Blocks -->
+    <div class="admin-table-card">
+        
+        <!-- Tab 1: Users table -->
+        <div x-show="activeTab === 'users'" class="animate-fade-in-up">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>가입일</th>
+                        <th>닉네임</th>
+                        <th>실명</th>
+                        <th>이메일 주소</th>
+                        <th>스태프 권한</th>
+                        <th>활동 상태 (토글 지원)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users_list %}
+                        <tr>
+                            <td>{{ u.date_joined|date:"Y.m.d" }}</td>
+                            <td style="font-weight: 700;">{{ u.nickname }}</td>
+                            <td>{{ u.name }}</td>
+                            <td style="font-family: monospace;">{{ u.email }}</td>
+                            <td>
+                                {% if u.is_superuser %}
+                                    <span style="color:var(--color-primary); font-weight:700;">👑 슈퍼 관리자</span>
+                                {% elif u.is_staff %}
+                                    <span style="font-weight:700;">스태프</span>
+                                {% else %}
+                                    <span style="color:var(--color-text-muted);">일반 회원</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Live HTMX Status Toggle (Secure authority checks inside views) -->
+                                {% if u == user %}
+                                    <span class="badge-status-active" title="본인 계정은 비활성화할 수 없습니다.">활성화 (본인)</span>
+                                {% else %}
+                                    <button hx-post="{% url 'admin_user_toggle' u.pk %}"
+                                            hx-swap="outerHTML"
+                                            class="btn-toggle-badge"
+                                            title="클릭하여 회원 상태 토글">
+                                        {% if u.is_active %}
+                                            <span class="badge-status-active">활성화</span>
+                                        {% else %}
+                                            <span class="badge-status-inactive">비활성화</span>
+                                        {% endif %}
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--color-text-muted); font-style: italic;">가입된 회원이 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab 2: Posts table -->
+        <div x-show="activeTab === 'posts'" class="animate-fade-in-up" style="display: none;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>작성일</th>
+                        <th>게시글 제목</th>
+                        <th>시리즈명</th>
+                        <th>좋아요수</th>
+                        <th>공개 상태 (토글 지원)</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in posts_list %}
+                        <tr>
+                            <td>{{ p.created_at|date:"Y.m.d" }}</td>
+                            <td style="font-weight: 700; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="{% url 'blog:detail' p.slug %}" style="text-decoration: underline;" target="_blank">
+                                    {{ p.title }}
+                                </a>
+                            </td>
+                            <td>{{ p.series.name|default:"--" }}</td>
+                            <td>❤️ {{ p.likes_count }}</td>
+                            <td>
+                                <!-- Live HTMX Publish Toggle -->
+                                <button hx-post="{% url 'admin_post_toggle' p.pk %}"
+                                        hx-swap="outerHTML"
+                                        class="btn-toggle-badge"
+                                        title="클릭하여 공개 여부 토글">
+                                    {% if p.is_published %}
+                                        <span class="badge-status-active">공개</span>
+                                    {% else %}
+                                        <span class="badge-status-inactive">🔒 비공개</span>
+                                    {% endif %}
+                                </button>
+                            </td>
+                            <td>
+                                <a href="{% url 'blog:update' p.slug %}" class="btn-admin-action edit" style="padding: 0.3rem 0.8rem; font-size: 0.82rem;" target="_blank">
+                                    편집
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--color-text-muted); font-style: italic;">작성된 게시글이 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab 3: Series table -->
+        <div x-show="activeTab === 'series'" class="animate-fade-in-up" style="display: none;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>생성일</th>
+                        <th>시리즈 이름</th>
+                        <th>슬러그</th>
+                        <th>연결된 포스트 수</th>
+                        <th>삭제 관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in series_list %}
+                        <tr id="admin-series-row-{{ s.pk }}">
+                            <td>{{ s.created_at|date:"Y.m.d" }}</td>
+                            <td style="font-weight: 700;">{{ s.name }}</td>
+                            <td style="font-family: monospace;">{{ s.slug }}</td>
+                            <td>📦 {{ s.posts.count }}개</td>
+                            <td>
+                                <button hx-post="{% url 'admin_series_delete' s.pk %}"
+                                        hx-target="#admin-series-row-{{ s.pk }}"
+                                        hx-swap="delete"
+                                        hx-confirm="정말로 이 시리즈를 삭제하시겠습니까? (연결된 포스트는 삭제되지 않고 일반 글로 남습니다.)"
+                                        class="btn-item-delete"
+                                        style="cursor: pointer; padding: 0.4rem 0.7rem; border-radius: 8px; color: #ff4757; background-color: rgba(255, 71, 87, 0.08); display: flex; align-items: center; justify-content: center;"
+                                        onmouseover="this.style.backgroundColor='rgba(255, 71, 87, 0.15)'"
+                                        onmouseout="this.style.backgroundColor='rgba(255, 71, 87, 0.08)'">
+                                    삭제
+                                </button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--color-text-muted); font-style: italic;">생성된 시리즈가 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

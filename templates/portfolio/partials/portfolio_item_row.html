@@ -1,0 +1,45 @@
+<div id="portfolio-item-{{ item.pk }}" 
+     class="portfolio-edit-row animate-fade-in-up" 
+     style="display: flex; align-items: flex-start; justify-content: space-between; padding: 1.2rem; background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; margin-bottom: 0.8rem; box-shadow: 0 4px 10px var(--color-shadow); transition: var(--transition-smooth);">
+    
+    <div style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; padding-right: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <span class="badge-section-type" style="font-size: 0.75rem; font-weight: 700; background-color: rgba(255, 154, 60, 0.12); color: var(--color-primary); padding: 0.25rem 0.6rem; border-radius: 6px;">
+                {{ item.get_section_type_display }}
+            </span>
+            <strong class="item-title" style="font-size: 1.05rem; color: var(--color-text);">{{ item.title }}</strong>
+        </div>
+        
+        {% if item.sub_title %}
+            <span class="item-subtitle" style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 500;">
+                {{ item.sub_title }}
+            </span>
+        {% endif %}
+        
+        {% if item.description %}
+            <p class="item-desc" style="font-size: 0.92rem; color: var(--color-text-muted); white-space: pre-line; margin-top: 0.4rem;">
+                {{ item.description }}
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Delete Item Button using HTMX -->
+    <button hx-post="{% url 'portfolio:delete_item' item.pk %}" 
+            hx-target="#portfolio-item-{{ item.pk }}" 
+            hx-swap="delete"
+            hx-confirm="정말로 이 포트폴리오 항목을 삭제하시겠습니까?"
+            class="btn-item-delete"
+            aria-label="항목 삭제"
+            style="cursor: pointer; padding: 0.5rem; border-radius: 8px; color: #ff4757; background-color: rgba(255, 71, 87, 0.08); display: flex; align-items: center; justify-content: center; transition: var(--transition-smooth);"
+            onmouseover="this.style.backgroundColor='rgba(255, 71, 87, 0.15)'"
+            onmouseout="this.style.backgroundColor='rgba(255, 71, 87, 0.08)'">
+        
+        <!-- Trash Icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+    </button>
+</div>

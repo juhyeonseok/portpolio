@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}포트폴리오 관리 콘솔{% endblock %}
+
+{% block content %}
+<style>
+    .edit-console-container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        width: 100%;
+    }
+
+    .edit-section-card {
+        background-color: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px var(--color-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.8rem;
+    }
+
+    .edit-section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        border-bottom: 2px solid var(--color-primary);
+        padding-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Drag and Drop Uploader CSS */
+    .dropzone-area {
+        border: 2px dashed var(--color-border);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+        background-color: var(--color-bg);
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .dropzone-area.dragover {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-glow);
+    }
+
+    .dropzone-avatar-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--color-primary);
+    }
+
+    /* Layout Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Figma Concept - 고정형 와이드 입력창 및 뚜렷한 경계선 [v1.5] */
+    .form-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 800px; /* 고정식 와이드 크기 보장 */
+    }
+
+    .form-input {
+        width: 100%;
+        max-width: 800px; /* 고정 크기 지정 */
+        padding: 1rem 1.4rem;
+        font-size: 1.02rem;
+        background-color: #FFFFFF !important; /* 순백색으로 채워서 대비 강화 */
+        border: 2px solid #A09284 !important; /* 뚜렷하게 관측되는 슬레이트 브라운 보더 */
+        border-radius: 12px;
+        color: #1F1F1F !important;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.01);
+        transition: background-color 0.4s ease, border-color 0.25s ease, box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+        outline: none;
+    }
+
+    .form-input:hover {
+        border-color: var(--color-primary) !important;
+        transform: translateY(-1px);
+    }
+
+    .form-input:focus {
+        background-color: #FFFFFF !important;
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 5px var(--color-primary-glow), inset 0 2px 4px rgba(0, 0, 0, 0.01) !important;
+        transform: translateY(0);
+    }
+
+    /* 다크모드 대응 강제 지정 */
+    body.dark .form-input {
+        background-color: #242424 !important;
+        border-color: #5C554F !important;
+        color: #EFEFEF !important;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    body.dark .form-input:focus {
+        background-color: #242424 !important;
+    }
+</style>
+
+<div class="edit-console-container animate-fade-in-up">
+
+    <!-- Top Admin Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--color-border); padding-bottom: 1.5rem;">
+        <h2 style="font-size: 1.8rem; font-weight: 800;">포트폴리오 편집 콘솔 ⚙️</h2>
+        <a href="{% url 'portfolio:index' %}" class="btn-pdf" style="font-size: 0.95rem;">
+            ← 뒤로가기
+        </a>
+    </div>
+
+    <!-- 1. 프로필 이미지 업로더 (Drag and Drop) -->
+    <div class="edit-section-card">
+        <h3 class="edit-section-title">👤 프로필 이미지 및 스펙 변경</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <label class="form-label">프로필 이미지 파일 업로드 (드래그 앤 드롭 지원)</label>
+            <div id="image-dropzone" class="dropzone-area">
+                <div id="avatar-preview-container">
+                    {% if profile.profile_image %}
+                        <img src="{{ profile.profile_image.url }}" class="dropzone-avatar-preview" alt="미리보기">
+                    {% else %}
+                        <div class="dropzone-avatar-preview" style="background-color: var(--color-border); display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <strong style="display: block; font-size: 1rem; color: var(--color-text);">파일을 드래그해서 이곳에 놓으세요</strong>
+                    <span style="font-size: 0.85rem; color: var(--color-text-muted);">또는 클릭해서 파일을 직접 선택하세요</span>
+                </div>
+                <input type="file" id="image-file-input" style="display: none;" accept="image/*">
+            </div>
+        </div>
+
+        <!-- 프로필 기본정보 변경 (HTMX) -->
+        <form hx-post="{% url 'portfolio:update_profile' %}" 
+              hx-target="#meta-update-status" 
+              style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+            {% csrf_token %}
+            
+            <div id="meta-update-status"></div>
+
+            <div class="form-field-group">
+                <label class="form-label">이름</label>
+                <div class="input-wrapper">
+                    <input type="text" name="name" value="{{ profile.name }}" class="form-input" required>
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+            
+            <div class="form-field-group">
+                <label class="form-label">기술 스택 (쉼표로 구분)</label>
+                <div class="input-wrapper">
+                    <input type="text" name="skills" value="{{ profile.skills }}" class="form-input" placeholder="예: Django, React, Python, CSS">
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label">한 줄 슬로건</label>
+                <div class="input-wrapper">
+                    <input type="text" name="title" value="{{ profile.title }}" class="form-input" required>
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-auth-submit" style="align-self: flex-start;">
+                프로필 메타정보 저장
+            </button>
+        </form>
+    </div>
+
+    <!-- 2. 신규 섹션 아이템 추가 양식 (HTMX) -->
+    <div class="edit-section-card">
+        <h3 class="edit-section-title">➕ 신규 포트폴리오 항목 추가</h3>
+        
+        <form hx-post="{% url 'portfolio:add_item' %}" 
+              hx-target="#new-item-status" 
+              hx-swap="outerHTML"
+              id="add-item-form"
+              style="display: flex; flex-direction: column; gap: 1.2rem;">
+            {% csrf_token %}
+            
+            <div id="new-item-status"></div>
+
+            <div class="form-field-group">
+                <label class="form-label">섹션 종류</label>
+                <div class="input-wrapper">
+                    <select name="section_type" class="form-input" style="appearance: auto;" required>
+                        <option value="">-- 선택하세요 --</option>
+                        {% for key, val in sections %}
+                            <option value="{{ key }}">{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label">항목 제목 (학위명/회사명/대회명)</label>
+                <div class="input-wrapper">
+                    <input type="text" name="title" placeholder="예: 서울대학교 컴퓨터공학 학사, (주)안티그래비티" class="form-input" required>
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label">부제목 / 소속 / 기간</label>
+                <div class="input-wrapper">
+                    <input type="text" name="sub_title" placeholder="예: 2024.03 ~ 현재, 직위: 주임 연구원" class="form-input">
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label">출력 순서 (낮을수록 먼저 출력)</label>
+                <div class="input-wrapper">
+                    <input type="number" name="order" value="0" class="form-input" required>
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label">상세 내용 설명 (기술 스택 및 한 줄 슬로건 세부 내용도 포함 가능)</label>
+                <div class="input-wrapper">
+                    <textarea name="description" rows="6" placeholder="해당 교육, 경력, 자격증 등의 상세한 역할, 사용 기술 스택, 핵심 성과를 오른쪽 폭에 맞추어 시원하게 기록하세요." class="form-input" style="resize: vertical;"></textarea>
+                    <span class="focus-border"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-auth-submit" style="align-self: flex-start;">
+                항목 추가하기
+            </button>
+        </form>
+    </div>
+
+    <!-- 3. 현재 등록된 포트폴리오 아이템 목록 & 삭제 관리 -->
+    <div class="edit-section-card">
+        <h3 class="edit-section-title">📋 등록된 모든 항목 관리</h3>
+        
+        <div id="portfolio-items-list-container" style="display: flex; flex-direction: column; gap: 0.2rem;">
+            {% for item in items %}
+                {% include 'portfolio/partials/portfolio_item_row.html' %}
+            {% empty %}
+                <p id="empty-notice" style="color: var(--color-text-muted); font-style: italic; text-align: center; padding: 2rem 0;">등록된 항목이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Drag & Drop Uploader Script integration -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const dropzone = document.getElementById("image-dropzone");
+        const fileInput = document.getElementById("image-file-input");
+        const previewContainer = document.getElementById("avatar-preview-container");
+
+        // Click triggering
+        dropzone.addEventListener("click", () => fileInput.click());
+
+        // Drag events
+        dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.classList.add("dragover");
+        });
+
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("dragover");
+        });
+
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadImage(files[0]);
+            }
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                uploadImage(files[0]);
+            }
+        });
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append("profile_image", file);
+            
+            // Fetch CSRF Token
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            // Show loading placeholder
+            previewContainer.innerHTML = '<div class="dropzone-avatar-preview" style="background-color: var(--color-border); display: flex; align-items: center; justify-content: center;"><span style="font-size: 0.8rem; font-weight:700;">전송 중...</span></div>';
+
+            fetch("{% url 'portfolio:upload_image' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "HX-Request": "true"
+                },
+                body: formData
+            })
+            .then(res => {
+                if (res.ok) return res.text();
+                throw new Error("업로드 실패");
+            })
+            .then(html => {
+                previewContainer.innerHTML = html;
+            })
+            .catch(err => {
+                alert("이미지 파일 전송에 실패했습니다. 다시 시도해 주세요.");
+                previewContainer.innerHTML = '<div class="dropzone-avatar-preview" style="background-color: var(--color-border); display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>';
+            });
+        }
+        
+        // HTMX Reset Form and Append item callback
+        document.body.addEventListener("htmx:afterOnLoad", (e) => {
+            const statusContainer = document.getElementById("new-item-status");
+            
+            if (e.detail.xhr.status === 200 && e.detail.target.id === "new-item-status") {
+                // Get the new item html from response
+                const newItemHtml = e.detail.xhr.responseText;
+                
+                // Remove empty notice if exists
+                const emptyNotice = document.getElementById("empty-notice");
+                if (emptyNotice) emptyNotice.remove();
+                
+                // Append row to the list container
+                const listContainer = document.getElementById("portfolio-items-list-container");
+                listContainer.insertAdjacentHTML("beforeend", newItemHtml);
+                
+                // Reset add form
+                const form = document.getElementById("add-item-form");
+                form.reset();
+                
+                // Display positive brief toast/status inside status container
+                statusContainer.innerHTML = '<div class="form-global-success animate-fade-in-up" style="background-color: rgba(46, 213, 115, 0.08); border: 1px solid rgba(46, 213, 115, 0.2); padding: 0.8rem 1.2rem; border-radius: 12px; color: #2ed573; font-weight: 700; margin-bottom: 0.5rem;">✅ 신규 항목이 포트폴리오에 즉시 반영되었습니다.</div>';
+                setTimeout(() => {
+                    statusContainer.innerHTML = "";
+                }, 4000);
+            } else if (e.detail.target.id === "new-item-status" && e.detail.xhr.status !== 200) {
+                // Handle form parsing or DB validation fails dynamically (Anti-deadlock UX)
+                let errorMsg = "데이터를 저장하는 중 서버 내부 에러가 발생했습니다. 글자 수를 줄이거나 형식을 확인해 주세요.";
+                try {
+                    if (e.detail.xhr.responseText.includes("form-error-msg")) {
+                        errorMsg = e.detail.xhr.responseText;
+                    }
+                } catch(e_err) {}
+                
+                statusContainer.innerHTML = `<div class="form-global-error animate-fade-in-up" style="margin-bottom:0.5rem;">${errorMsg}</div>`;
+            }
+        });
+    });
+</script>
+{% endblock %}

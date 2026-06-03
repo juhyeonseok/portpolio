@@ -1,0 +1,57 @@
+<form id="login-form" 
+      hx-post="{% url 'accounts:login' %}" 
+      hx-target="#login-form-container" 
+      hx-swap="outerHTML"
+      class="auth-form {% if form.errors %}shake-form{% endif %}"
+      style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+    
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+        <div class="form-global-error animate-fade-in-up">
+            {% for error in form.non_field_errors %}
+                <span class="form-error-msg">⚠️ {{ error }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="form-field-group">
+        <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+        <div class="input-wrapper">
+            {{ form.username }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.username.errors %}
+            <div class="field-error-container">
+                {% for error in form.username.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-field-group">
+        <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+        <div class="input-wrapper">
+            {{ form.password }}
+            <span class="focus-border"></span>
+        </div>
+        {% if form.password.errors %}
+            <div class="field-error-container">
+                {% for error in form.password.errors %}
+                    <span class="form-error-msg">⚠️ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn-auth-submit" style="margin-top: 1rem;">
+        로그인
+        <!-- Login SVG Icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+    </button>
+</form>
