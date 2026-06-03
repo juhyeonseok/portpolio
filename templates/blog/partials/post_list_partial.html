@@ -3,7 +3,7 @@
     <!-- Blog Cards Grid -->
     <div class="posts-grid">
         {% for post in posts %}
-            <article class="post-card" onclick="location.href='/blog/{{ post.slug }}/'" style="animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) calc(0.1s + {{ forloop.counter0 }} * 0.08s) forwards;">
+            <article class="post-card" onclick="location.href='/blog/{{ post.slug }}/'" x-data x-init="$el.style.animation = 'fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) ' + (0.1 + {{ forloop.counter0 }} * 0.08) + 's forwards'">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                     <span class="post-series">
                         {% if post.series %}
